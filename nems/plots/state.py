@@ -16,6 +16,9 @@ def state_vars_timeseries(rec, modelspec, ax=None, state_colors=None):
     nnidx = np.isfinite(p1)
     r1=r1[nnidx]
     p1=p1[nnidx]
+    smf = np.ones(5)/5
+    r1 = np.convolve(r1, smf, mode='same')
+    p1 = np.convolve(p1, smf, mode='same')
     #r1 = scipy.signal.decimate(r1[nnidx], q=5, axis=0)
     #p1 = scipy.signal.decimate(p1[nnidx], q=5, axis=0)
     #t = np.arange(len(r1))/pred.fs*5
