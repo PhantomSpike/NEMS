@@ -1,4 +1,5 @@
 import pytest
+import platform
 
 import numpy as np
 
@@ -75,10 +76,15 @@ def test_simple_vector_bounds_subset(simple_modelspec_with_phi):
     assert np.all(np.equal(ub[2:], np.inf))
 
 
-def test_benchmark_packer_unpacker(benchmark, simple_modelspec_with_phi):
-    packer, unpacker, _ = simple_vector(simple_modelspec_with_phi)
-    vector = np.arange(38)
-    benchmark(unpacker, vector)
+if platform.system() != 'Darwin':
+
+    def test_benchmark_packer_unpacker(benchmark, simple_modelspec_with_phi):
+        packer, unpacker, _ = simple_vector(simple_modelspec_with_phi)
+        vector = np.arange(38)
+        benchmark(unpacker, vector)
+
+else:
+    print('benchmark not supported in OSX?')
 
 
 def test_to_bounds_array():
