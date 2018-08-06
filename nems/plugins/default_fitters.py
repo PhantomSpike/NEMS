@@ -113,9 +113,9 @@ def basic(fitkey):
     xfspec = []
 
     options = _extract_options(fitkey)
-    max_iter, tolerance, fitter, evaluator = _parse_basic(options)
+    max_iter, tolerance, fitter, keep_stack = _parse_basic(options)
     xfspec = [['nems.xforms.fit_basic',
-               {'max_iter': max_iter, 'evaluator': evaluator,
+               {'max_iter': max_iter, 'keep_stack': keep_stack,
                 'fitter': fitter, 'tolerance': tolerance}]]
 
     return xfspec
@@ -181,7 +181,7 @@ def _parse_basic(options):
     max_iter = 1000
     tolerance = 1e-7
     fitter = 'scipy_minimize'
-    evaluator = 'evaluate'
+    keep_stack = False
     for op in options:
         if op.startswith('mi'):
             pattern = re.compile(r'^mi(\d{1,})')
@@ -195,9 +195,9 @@ def _parse_basic(options):
         elif op == 'cd':
             fitter = 'coordinate_descent'
         elif op == 'stack':
-            evaluator = 'evaluate_with_stack'
+            keep_stack = True
 
-    return max_iter, tolerance, fitter, evaluator
+    return max_iter, tolerance, fitter, keep_stack
 
 
 def _parse_iter(options):

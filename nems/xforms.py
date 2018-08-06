@@ -503,14 +503,13 @@ def fit_state_init(modelspecs, est, IsReload=False, metric='nmse', **context):
 
 def fit_basic(modelspecs, est, max_iter=1000, tolerance=1e-7,
               metric='nmse', IsReload=False, fitter='scipy_minimize',
-              evaluator='evaluate',
+              keep_stack=False,
               jackknifed_fit=False, random_sample_fit=False,
               n_random_samples=0, random_fit_subset=None, **context):
-    ''' A basic fit that optimizes every input modelspec. '''
+    ''' A basic fit that optimizes every input modelspec.'''
     if not IsReload:
         metric_fn = lambda d: getattr(metrics, metric)(d, 'pred', 'resp')
         fitter_fn = getattr(nems.fitters.api, fitter)
-        evaluator_fn = getattr(ms, evaluator)
         fit_kwargs = {'tolerance': tolerance, 'max_iter': max_iter}
 
         if jackknifed_fit:
@@ -521,7 +520,7 @@ def fit_basic(modelspecs, est, max_iter=1000, tolerance=1e-7,
 
         elif random_sample_fit:
             basic_kwargs = {'metric': metric_fn, 'fitter': fitter_fn,
-                            'fit_kwargs': fit_kwargs}
+                            'fit_kwargs': fit_kwargs, 'keep_stack': keep_stack}
             return fit_n_times_from_random_starts(
                         modelspecs, est, ntimes=n_random_samples,
                         subset=random_fit_subset,
@@ -535,7 +534,7 @@ def fit_basic(modelspecs, est, max_iter=1000, tolerance=1e-7,
                                                 fit_kwargs=fit_kwargs,
                                                 metric=metric_fn,
                                                 fitter=fitter_fn,
-                                                evaluator=evaluator_fn)[0]
+                                                keep_stack=keep_stack)[0]
                     for modelspec in modelspecs
                     ]
 

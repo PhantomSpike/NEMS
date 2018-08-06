@@ -154,3 +154,38 @@ def phi_percentile(priors, percentile):
     [{'mu': 0.0}, {'scale': array([ 0.29289322,  0.70710678])}]
     '''
     return [{n: p.percentile(percentile) for n, p in m.items()} for m in priors]
+
+
+def last_matching_phi(modelspec1, modelspec2):
+    '''
+    Get the index of the last shared module w/ identical phi entries in both
+    modelspecs.
+    '''
+    last_match = None
+    for m1, m2 in zip(modelspec1, modelspec2):
+        i = 0
+        for p1, p2 in zip(m1['phi'], m2['phi']):
+            c = p1 == p2
+            if np.isscalar(c):
+                match = bool(c)
+            else:
+                match = c.all()
+            if not match:
+                return last_match
+
+            last_match = i
+        i += 1
+
+    return last_match
+
+
+def copy_stack_data(rec, stack, idx, modelspec):
+    '''
+    Return a new recording w/ data copied from stack at index of the last
+    module with identical phi entries.
+    '''
+    signal_name = modelspec[idx]['fn_kwargs']['o']
+    new_rec = rec.copy()
+    new_signal = new_rec['signal_name']._modified_copy(stack._data[idx])
+    new_rec[signal_name] = new_signal
+    return new_rec

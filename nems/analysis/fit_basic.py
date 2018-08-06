@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 def fit_basic(data, modelspec,
               fitter=scipy_minimize, cost_function=None,
-              evaluator=ms.evaluate,
+              keep_stack=False,
               segmentor=nems.segmentors.use_all_data,
               mapper=nems.fitters.mappers.simple_vector,
               metric=lambda data: metrics.nmse(data, 'pred', 'resp'),
@@ -86,8 +86,8 @@ def fit_basic(data, modelspec,
     # updating.
     cost_fn = partial(my_cost_function,
                       unpacker=unpacker, modelspec=modelspec,
-                      data=data, segmentor=segmentor, evaluator=evaluator,
-                      metric=metric)
+                      data=data, segmentor=segmentor, evaluator=ms.evaluate,
+                      metric=metric, keep_stack=keep_stack)
 
     # get initial sigma value representing some point in the fit space,
     # and corresponding bounds for each value
