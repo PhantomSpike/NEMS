@@ -11,9 +11,10 @@ def basic_cost(sigma, unpacker, modelspec, data, segmentor,
     updated_spec = unpacker(sigma)
     # The segmentor takes a subset of the data for fitting each step
     # Intended use is for CV or random selection of chunks of the data
-    # For fit_basic the 'segmentor' just passes it all through.
+    # For fit_basic the 'segmentor' just passes it all through.abeflmnst
     data_subset = segmentor(data)
     updated_data_subset = evaluator(data_subset, updated_spec)
+
     error = metric(updated_data_subset)
     log.debug("inside cost function, current error: %.06f", error)
     log.debug("current sigma: %s", sigma)
@@ -22,7 +23,6 @@ def basic_cost(sigma, unpacker, modelspec, data, segmentor,
         basic_cost.counter += 1
         if basic_cost.counter % 500 == 0:
             log.info('Eval #%d. E=%.06f', basic_cost.counter, error)
-            # log.debug("current sigma: %s", sigma)
             nems.utils.progress_fun()
 
     if hasattr(basic_cost, 'error'):

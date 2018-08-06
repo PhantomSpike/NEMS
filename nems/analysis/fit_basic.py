@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 
 def fit_basic(data, modelspec,
               fitter=scipy_minimize, cost_function=None,
+              evaluator=ms.evaluate,
               segmentor=nems.segmentors.use_all_data,
               mapper=nems.fitters.mappers.simple_vector,
               metric=lambda data: metrics.nmse(data, 'pred', 'resp'),
@@ -77,9 +78,6 @@ def fit_basic(data, modelspec,
     #    .unpack(fitspace_point) -> modelspec
     #    .bounds(modelspec) -> fitspace_bounds
     packer, unpacker, pack_bounds = mapper(modelspec)
-
-    # A function to evaluate the modelspec on the data
-    evaluator = nems.modelspec.evaluate
 
     my_cost_function = cost_function
     my_cost_function.counter = 0

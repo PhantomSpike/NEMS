@@ -3,10 +3,16 @@ import os
 import copy
 import json
 import importlib
+import logging
+
 import numpy as np
 import scipy.stats as st
+
 import nems.utils
 import nems.uri
+import nems.signal
+
+log = logging.getLogger(__name__)
 
 # Functions for saving, loading, and evaluating modelspecs
 
@@ -217,9 +223,61 @@ def evaluate(rec, modelspec, start=None, stop=None):
             fn = lambda x: (x - m['norm']['d']) / m['norm']['g']
             new_signals = [s.transform(fn, k)]
 
+        for s in new_signals:
+            d.add_signal(s)
+
+    return d
+
+
+def evaluate_with_stack(rec, modelspec, start=None, stop=None):
+    '''
+    As evaluate, but maintains a running "stack" of copies of the signals
+    returned at each step of the evaluation. The designated signal to be
+    saved will be stored as a new signal in rec called "stack."
+    '''
+
+    d = copy.copy(rec)
+    signal_dict = {}
+    for i, m in enumerate(modelspec[start:stop]):
+        fn = _lookup_fn_at(m['fn'])
+        fn_kwargs = m.get('fn_kwargs', {})
+        kwargs = {**fn_kwargs, **m['phi']}  # Merges both dicts
+        new_signals = fn(rec=d, **kwargs)
+        if type(new_signals) is not list:
+            raise ValueError('Fn did not return list of signals: {}'.format(m))
+
+        # testing normalization
+        if 'norm' in m.keys():
+            s = new_signals[0]
+            k = s.name
+            if m['norm']['recalc']:
+                if m['norm']['type'] == 'minmax':
+                    m['norm']['d'] = np.nanmin(s.as_continuous(), axis=1,
+                                               keepdims=True)
+                    m['norm']['g'] = np.nanmax(s.as_continuous(), axis=1,
+                                               keepdims=True) - \
+                        m['norm']['d']
+                    m['norm']['g'][m['norm']['g'] <= 0] = 1
+                elif m['norm']['type'] == 'none':
+                    m['norm']['d'] = np.array([0])
+                    m['norm']['g'] = np.array([1])
+                else:
+                    raise ValueError('norm format not supported')
+
+            fn = lambda x: (x - m['norm']['d']) / m['norm']['g']
+            new_signals = [s.transform(fn, k)]
 
         for s in new_signals:
             d.add_signal(s)
+
+        # TODO: What to do for multiple signals?
+        signal_dict[str(i)] = new_signals[0].as_continuous()
+
+    stack = nems.signal.TiledSignal(fs=0, data=signal_dict, name='stack',
+                                    recording=rec.name,
+                                    chans=list(signal_dict.keys()))
+    d.add_signal(stack)
+
     return d
 
 
